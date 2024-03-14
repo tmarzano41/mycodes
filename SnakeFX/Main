@@ -1,0 +1,91 @@
+package application;
+
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import java.util.ArrayList;
+import javafx.animation.AnimationTimer;
+import javafx.application.Application;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+
+public class Main extends Application {
+	
+	private GameLogic game;
+	private BoardRendering boardRendering;
+	private Grid grid;
+	private Text scoreText; // Text node to display the score
+	private static final int WIDTH = 1000;
+	private static final int HEIGHT = 640;
+	private static final int GRID_ROWS = 20;//horizontal
+    private static final int GRID_COLUMNS = 20;//vertical
+    private static final double GRID_WIDTH = 620;
+    private static final double GRID_HEIGHT = 620;
+	public static void main(String[] args) {
+		launch(args);
+	}
+	@Override
+	public void start(Stage primaryStage) {
+		try {
+			StackPane root = new StackPane();//Initialize Stage
+			boardRendering = new BoardRendering(WIDTH,HEIGHT);//size of game board
+			root.getChildren().add(boardRendering);
+			Scene scene = new Scene(root,WIDTH+1,HEIGHT+1);//size of window
+			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+
+		    Button btn = new Button();
+		    btn.setText("Start");
+		    root.getChildren().add(btn);
+		    
+		    primaryStage.setTitle("Snake FX");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+			
+			scene.setOnKeyPressed(event -> {
+	            KeyCode keyCode = event.getCode();
+	            game.handleKeyPress(keyCode);
+	        });
+			game = new GameLogic(WIDTH, HEIGHT);
+			
+			scoreText = new Text("Score: 0");
+            scoreText.setFont(Font.font("Arial", 40));
+            scoreText.setFill(Color.WHITE);
+            StackPane.setMargin(scoreText, new Insets(20)); // Set margin for the score text
+            scoreText.setTranslateX(300);
+            scoreText.setTranslateY(-280);
+            
+			AnimationTimer gameLoop = new AnimationTimer() {
+				@Override
+				public void handle(long now) {
+					game.update();
+					boardRendering.renderSnake(new ArrayList<Point2D>(game.getSnake()));
+					boardRendering.renderApple(game.getApple());
+					scoreText.setText("Score: " + game.getScore());
+					//update game state
+					//render game board
+					//call those methods here
+				}
+			};
+			btn.setOnAction(event -> {
+				gameLoop.start();
+				root.getChildren().remove(btn);
+				grid = new Grid(GRID_ROWS, GRID_COLUMNS, GRID_WIDTH, GRID_HEIGHT);
+				root.getChildren().add(grid);
+				root.getChildren().add(scoreText);
+			});
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+}
